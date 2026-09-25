@@ -1,0 +1,49 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build, ktlint & test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # No-op when the runner's Android SDK is present (it normally is);
+      # downloads a verification-only android.jar otherwise.
+      - name: Ensure android.jar for d8
+        run: ./tools/fetch_android_jar.sh
+
+      - name: ktlint
+        run: ./gradlew ktlintCheck --stacktrace
+
+      - name: Unit tests
+        run: ./gradlew test --stacktrace
+
+      - name: Package & verify extension
+        run: ./gradlew packageExtension verifyPackage --stacktrace
+
+      - name: Upload extension package
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: wallpaperflare-extension-package
+          path: plugin/build/outputs/extension/*.zip

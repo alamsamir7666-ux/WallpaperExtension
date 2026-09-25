@@ -1,0 +1,10 @@
+{
+  "id": "cloudimage.wallpaperflare",
+  "name": "Wallpaperflare",
+  "versionName": "0.1.0",
+  "versionCode": 1,
+  "author": "alamsamir7666-ux",
+  "description": "Wallpapers from wallpaperflare.com - popular feed, search and filters.",
+  "apiVersion": 1,
+  "entryClass": "com.cloudimage.wallpaperflare.WallpaperflareWallpaperProvider"
+}

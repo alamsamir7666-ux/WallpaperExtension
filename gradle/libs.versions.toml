@@ -1,0 +1,23 @@
+[versions]
+# Mirrors the Cloudimage host app (github.com/alamsamir7666-ux/Cloud-Wallpaper,
+# tag v1.0.5, commit 59d06d8a8cb31103d85f3fe852bf8f740c71c58f) so the plugin is
+# built with the exact toolchain the host's providers use.
+kotlin = "2.4.20"
+coroutines = "1.9.0"
+serializationJson = "1.11.0"
+ktlint = "14.2.0"
+r8 = "9.4.24"
+junit = "4.13.2"
+
+[libraries]
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serializationJson" }
+junit = { module = "junit:junit", version.ref = "junit" }
+# d8 lives in this artifact; resolved through the `d8Runtime` configuration
+# exactly like the host's CloudProviderConventionPlugin does.
+r8 = { module = "com.android.tools:r8", version.ref = "r8" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }

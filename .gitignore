@@ -1,0 +1,21 @@
+# Gradle
+.gradle/
+build/
+local.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+
+# android.jar for local d8 dexing — fetched by tools/fetch_android_jar.sh,
+# verification only, never committed, never shipped
+tools/android.jar
+
+# Recon workspace: only RECON.md (the frozen contract) is tracked; probe
+# captures and cloned third-party reference scrapers stay local
+recon/*
+!recon/RECON.md
