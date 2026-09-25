@@ -15,10 +15,11 @@ local.properties
 # verification only, never committed, never shipped
 tools/android.jar
 
-# Recon workspace: RECON.md (the frozen contract) and the committed fixture
-# set are tracked; probe captures and cloned third-party reference scrapers
-# stay local
+# Recon workspace: RECON.md (the frozen contract), the committed fixture
+# set and the emulator gate checklist are tracked; probe captures and
+# cloned third-party reference scrapers stay local
 recon/*
 !recon/RECON.md
+!recon/EMULATOR_CHECK.md
 !recon/fixtures
 !recon/fixtures/**

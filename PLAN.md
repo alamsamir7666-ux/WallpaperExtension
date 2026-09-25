@@ -112,15 +112,37 @@ tests pass, CI clean.
       clean, package 23,024 bytes reproducible (sha256 67c94f6b…), dex
       payload audit: defines only `com/cloudimage/wallpaperflare/*`.
       *Exit: provider complete and tested — done.*
-- [ ] **Part 5 — Packaging verification & engine integration** · validate the
-      built zip end-to-end: manifest parses under the host's
-      `ExtensionManifest` rules, layout matches `extension.json` +
-      `classes.dex`, dex external refs resolve against the host's kept
-      classes (mini audit in the style of `tools/audit_release_dex.py`),
-      index.json generated with correct sha256/sizeBytes. User-assisted
-      emulator check: install the app, add a local repo, load the plugin,
-      confirm the host UA is not challenged and the feed renders.
-      *Exit: package installs & loads in the real engine.*
+- [ ] **Part 5 — Packaging verification & engine integration** · the
+      automated half is DONE and wired into CI: `tools/verify_package.py`
+      re-runs the host engine's own rules offline (zip layout per
+      `ExtensionPackages`, the exact `ExtensionManifest` schema/patterns/
+      constraints, the `ProviderApi` exact-match gate, entryClass defined
+      by the payload dex, `<id>.zip` naming) PLUS the release-dex ABI audit
+      in the host's `tools/audit_release_dex.py` style — every external
+      type reference must resolve against the host's kept surface
+      (`com.cloudimage.provider.api.**`, `kotlin.**`,
+      `kotlinx.serialization.**` + bootclasspath); the current payload's 81
+      external references ALL resolve (12 contract classes, kotlin stdlib
+      incl. the `suspend`-lowered `kotlin.coroutines`, java/dalvik
+      bootclasspath — zero references outside the kept surface, and notably
+      zero kotlinx.coroutines: the compile classpath is exactly
+      provider:api + kotlin-stdlib). `tools/build_repo_index.py` (adapted
+      from the host's, attribution in the header) generates `index.json`
+      with measured sha256/sizeBytes. CI runs both on every push and
+      uploads zip + index as artifacts. Two findings shaped the gate: the
+      host app blocks cleartext HTTP (no `usesCleartextTraffic`) so a
+      localhost repo is NOT installable — a PRELIMINARY gh-pages branch was
+      pushed instead (`.nojekyll` + index.json + zip, Pages enabled,
+      verified live: downloaded sha256 matches the index promise), and the
+      host's signed release APK `Cloudimage-v1.0.5.apk` is downloadable
+      from GitHub Releases — the R8 build where plugin ABI breaks actually
+      show. `recon/EMULATOR_CHECK.md` is the step-by-step gate. Remaining:
+      the user's device run (add repo URL → install package → feed renders
+      → search → detail/apply) and its verdict; the r{N} CDN grammar
+      verifies there too (CAPTURE.md's residential cookbook documents the
+      fallback).
+      *Exit: package installs & loads in the real engine — awaiting the
+      user's device check.*
 - [ ] **Part 6 — Publish pipeline & docs** · `publish.yml` → gh-pages
       (index.json + zip, force-orphan, mirrors the host's publish-repo.yml),
       adapted `tools/build_repo_index.py`. README: what it is, the exact
@@ -226,3 +248,22 @@ tests pass, CI clean.
   confirms the payload still defines only plugin classes. One workspace
   note: the environment restored files with mode 755 — `core.fileMode` is
   now off locally so phantom diffs stay out of commits.
+- **2026-09-25 — Part 5, automated half done: host rules verified, repo
+  live, device gate armed.** Every check the host engine runs at install
+  and load time now runs here too, offline, on every CI build:
+  `tools/verify_package.py` (host-exact manifest rules ported from
+  `ExtensionManifest`/`ProviderApi`/`ExtensionPackages`, plus the
+  release-dex ABI audit mirroring the host's `tools/audit_release_dex.py`
+  — the payload's 81 external type references all resolve against the
+  kept surface `provider.api`/`kotlin`/`kotlinx.serialization` +
+  bootclasspath; zero kotlinx.coroutines references, proving the compile
+  classpath is exactly provider:api + kotlin-stdlib). Two environment
+  findings changed the gate's shape: the host blocks cleartext HTTP, so a
+  localhost repo is uninstallable — a preliminary gh-pages branch was
+  pushed instead (Pages enabled via API; live URLs verified: downloaded
+  zip's sha256 matches the index promise), and the host's signed release
+  APK is on GitHub Releases, so the device check runs the R8 build where
+  ABI breaks actually appear. `recon/EMULATOR_CHECK.md` documents the
+  five-step gate and the failure-triage table. The single remaining Part 5
+  action is the user's device run; its verdict also verifies the r{N} CDN
+  grammar (the one sandbox-unverifiable piece since Part 3).

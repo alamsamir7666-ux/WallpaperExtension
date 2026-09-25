@@ -41,9 +41,21 @@ jobs:
       - name: Package & verify extension
         run: ./gradlew packageExtension verifyPackage --stacktrace
 
+      # Re-runs, offline, every rule the host engine enforces at install and
+      # load time plus the release-dex ABI audit (see tools/verify_package.py).
+      - name: Verify package against host engine rules
+        run: python3 tools/verify_package.py plugin/build/outputs/extension/cloudimage.wallpaperflare.zip
+
+      # The repository index the app fetches when the user adds this repo
+      # by URL; sha256/sizeBytes are the promise the installer verifies.
+      - name: Generate repository index
+        run: python3 tools/build_repo_index.py plugin/build/outputs/extension
+
       - name: Upload extension package
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
           name: wallpaperflare-extension-package
-          path: plugin/build/outputs/extension/*.zip
+          path: |
+            plugin/build/outputs/extension/*.zip
+            plugin/build/outputs/extension/index.json
