@@ -202,3 +202,57 @@ No discrepancy across sources on any committed selector. The only
 unverified-from-sandbox items are the full-res URL grammar (§4 caveat) and
 `show_img` src presence in fresh HTML — both are Part 5 / CAPTURE.md items
 with fallbacks already designed in.
+
+## 8. Cloudflare UA gate — live confirmation and the 0.4.0 contingency
+
+The Part 5 on-device run reported the source failing. Confirmation that the
+HTML endpoints sit behind a Cloudflare bot gate:
+
+- A live probe of the popular endpoint (2026-09-25, clean reader egress)
+  answered the managed challenge — `Just a moment...` markup, no cards.
+  The whole-zone 403 seen from the sandbox since Part 1 is the same wall,
+  IP-reputation flavored.
+- The host app sends a fixed non-browser User-Agent on EVERY request
+  (`CloudimageHttpClient.USER_AGENT` =
+  `Cloudimage/1.0 (Android; +https://github.com/alamsamir7666-ux/Cloud-Wallpaper)`)
+  — an "unknown automated client" signature that Cloudflare's bot scoring
+  challenges even from otherwise-clean IPs.
+
+**The escape hatch (verified against host code):** the provider contract
+hands every plugin a `ProviderHttpClient.get(url, headers)` whose extra
+headers are merged AFTER the host's own User-Agent
+(`CloudimageHttpClient.getRaw`: `.header("User-Agent", app)` first, one
+`.header(name, value)` per extra afterwards), and OkHttp's `header()`
+REPLACES same-named headers — so a plugin CAN present a browser identity
+per-request, without any host app change. (The contract's doc comment
+claims the UA "cannot be overridden"; the implementation's merge order
+says otherwise. This section freezes the implemented behavior.)
+
+**Frozen in 0.4.0** (`WallpaperflareHttp`):
+
+- `User-Agent`: `Mozilla/5.0 (Linux; Android 14; SM-A536B) AppleWebKit/537.36
+  (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36` — the exact
+  Chrome version is cosmetic; the browser-vs-app shape is what scores.
+- `Accept`: `text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,
+  image/webp,*/*;q=0.8` and `Accept-Language: `en-US,en;q=0.9`` — the headers
+  every real Chrome navigation carries.
+- NO `Accept-Encoding`: OkHttp transparently requests gzip and decompresses
+  only when the request carries no Accept-Encoding of its own.
+- No `Sec-Fetch-*`/client hints: they cannot be made consistent with OkHttp's
+  HTTP/2 fingerprint and only add inconsistency for a bot scorer to notice.
+
+`WallpaperflareHttpTest` pins the header set on every request path
+(popular, search, detail+download, random) so a host-side change to the
+merge order — or a revert here — fails in CI, not on devices.
+
+**Still host-side and unfixed by this:** thumbnail/full-image loading goes
+through the host's Coil loader with its own default OkHttp identity, not
+the plugin's headers. If the CDN rows of `tools/probe_site.sh` come back
+challenged, that is a host-level fix (Coil OkHttp config), out of this
+repo's reach. The probe script documents how to read the four cases;
+runner IPs are low-reputation, so both-challenged is inconclusive — only
+the on-device retest is final.
+
+`tools/probe_site.sh` (manual `site-probe` workflow) A/B-tests the two UAs
+against the live endpoints and validates the §4 c→r grammar on real CDN
+URLs — reusable for every future "is the wall moving?" question.

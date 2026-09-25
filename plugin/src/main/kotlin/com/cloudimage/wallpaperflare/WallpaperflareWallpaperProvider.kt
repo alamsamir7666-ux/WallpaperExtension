@@ -57,11 +57,13 @@ class WallpaperflareWallpaperProvider : WallpaperProvider {
         ProviderMeta(
             id = PLUGIN_ID,
             name = "Wallpaperflare",
-            versionName = "0.3.0",
+            versionName = "0.4.0",
             author = "alamsamir7666-ux",
             contentRating = ContentRating.SFW,
             language = "en",
-            description = "Wallpapers from wallpaperflare.com - popular feed, search, random picks and filters.",
+            description =
+                "Wallpapers from wallpaperflare.com - popular feed, search, random picks and filters. " +
+                    "Browser-identified requests pass the site's Cloudflare zone.",
         )
 
     override val capabilities: Set<Capability> =

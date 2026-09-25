@@ -267,3 +267,33 @@ tests pass, CI clean.
   five-step gate and the failure-triage table. The single remaining Part 5
   action is the user's device run; its verdict also verifies the r{N} CDN
   grammar (the one sandbox-unverifiable piece since Part 3).
+- **2026-09-25 (later) — Part 5, device gate iteration 2: the reported
+  failure is root-caused and fixed in 0.4.0.** The user's first device run
+  reported the extension not working (screenshot upload didn't reach the
+  workspace, so the diagnosis ran server-side first). Verified green, in
+  order: gh-pages serving (index.json + `cloudimage.wallpaperflare.zip`
+  both 200, live sha256 == index promise), the full host install chain
+  (`RepoManager.normalizeUrl` → index parse → download → sha256 gate →
+  `ExtensionManifest` rules → apiVersion 1 → entryClass defined), and the
+  live site — the popular endpoint answers a Cloudflare managed challenge
+  ("Just a moment...") even to clean reader egress, and the host sends a
+  fixed non-browser UA (`Cloudimage/1.0 (Android; +repo)`) on every
+  request: the documented risk #1, confirmed. Root cause fix, entirely
+  plugin-side: the host's `ProviderHttpClient.get(url, headers)` merges
+  extra headers AFTER its own UA and OkHttp's `header()` replaces
+  same-named headers, so 0.4.0's `WallpaperflareHttp` now stamps a browser
+  identity (UA + Accept + Accept-Language; deliberately no
+  Accept-Encoding, no Sec-Fetch) on every request through the single
+  `WallpaperflareClient.fetch` seam. No host app rebuild required — the
+  package reinstalls over 0.3.0 from the same repo URL. 3 new
+  `WallpaperflareHttpTest` tests pin the headers on every request path
+  (101/101 green); package 23,531 bytes, sha256 6ca801bf…, dex audit clean
+  (39 plugin classes). Also added `tools/probe_site.sh` + manual
+  `site-probe.yml`: A/B-probes the app UA vs browser UA against the live
+  endpoints from a runner egress and validates the §4 c→r CDN grammar —
+  the diagnostic for the next "is the wall moving?" question. Known
+  residual, host-side by construction: image loading goes through the
+  host's Coil loader with its own OkHttp identity, not plugin headers —
+  if thumbnails fail on device, that escalation is documented in
+  EMULATOR_CHECK.md's triage table. Awaiting the user's 0.4.0 retest to
+  close Part 5.

@@ -1,0 +1,31 @@
+name: site-probe
+
+# Manual diagnostic for the Part 5 device gate: A/B-tests the host app's
+# fixed User-Agent against the extension's browser identity against the
+# live wallpaperflare.com endpoints, plus the CDN c->r grammar that no
+# sandbox check can reach (tools/probe_site.sh has the reading guide).
+# Deliberately NOT scheduled — Part 7's watchdog owns monitoring.
+
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "Why this probe run"
+        required: false
+        default: ""
+
+jobs:
+  probe:
+    name: Live site probe (Cloudflare UA gate)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Probe wallpaperflare.com endpoints
+        run: bash tools/probe_site.sh
+
+      - name: Context
+        run: |
+          echo "note: ${{ github.event.inputs.note }}"
+          echo "run:  ${{ github.run_number }} (${{ github.sha }})"

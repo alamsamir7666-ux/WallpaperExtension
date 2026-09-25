@@ -51,13 +51,17 @@ https://alamsamir7666-ux.github.io/WallpaperExtension
 
 The app normalizes this to `…/WallpaperExtension/index.json` itself. The
 repository should list as **"Wallpaperflare extension repository"** with one
-package, *Wallpaperflare 0.3.0*.
+package, *Wallpaperflare 0.4.0*. If the app still lists 0.3.0, re-open the
+Extensions tab — the index is fetched on demand, not cached in V1.
 
 **Step 2 — install the package.** Tap install on *Wallpaperflare*. It should
 move to `READY` within a second or two — the download is ~23 KB, the sha256
 is verified on arrival, and a failure here names its reason precisely
 (checksum mismatch / invalid manifest / unsupported API are the host's
-messages, none of which should appear).
+messages, none of which should appear). **If 0.3.0 is already installed**,
+installing 0.4.0 from the refreshed repo replaces it in one step — the
+installer treats a re-install of the same id as a replace (host
+`ExtensionInstaller` contract).
 
 **Step 3 — browse (the Cloudflare gate).** Back on the browse tab, select
 the Wallpaperflare source. The popular feed should render thumbnails within
@@ -76,15 +80,18 @@ originals), and **Set wallpaper** should succeed.
 
 | Symptom | Meaning | Action |
 |---|---|---|
-| Feed error banner, "source failed: wallpaperflare answered HTTP 403" | Cloudflare is challenging the host UA (PLAN.md risk #2) | Report it — the documented contingency is the one-line UA change in the host's `CloudimageHttpClient` |
-| Thumbnails render but previews/downloads fail | the c→r CDN derivation hit an unknown shape (PLAN.md risk, CAPTURE.md §r-grammar) | Report which wallpaper — derivation gets pinned from a real capture |
+| ~~Feed error banner, "source failed: wallpaperflare answered HTTP 403"~~ — **reported on the first device run; fixed in 0.4.0** | Cloudflare challenged the host's app User-Agent | Update/reinstall the package (0.4.0, browser-identified requests — RECON §8) and re-run steps 3–5 |
+| Feed error banner persists on 0.4.0 | Cloudflare is scoring beyond the UA (TLS/HTTP2 fingerprint) — datacenter-style bot scoring | Report with `site-probe` output; next escalation is host-level (WebView fetch or host client changes) |
+| Thumbnails render but previews/downloads fail | the c→r CDN derivation hit an unknown shape (PLAN.md risk, CAPTURE.md §r-grammar) — or the CDN challenges the host's Coil image loader | Report which wallpaper; run `tools/probe_site.sh` CDN rows |
+| Thumbnails themselves fail to render | the CDN zone challenges Coil's default OkHttp identity — host-side fix needed | Report; host-level Coil OkHttp config is the contingency |
 | Package installs but source fails to load, "source failed to bind its classes" | release-dex ABI regression on the host side | Report — this is exactly what `verify_package.py` audits against; would indicate the host's keep rules changed |
 | Feed renders but is stuck after N pages | end-of-feed detection or pagination drift | Report the last page number that worked |
 | Everything green | Part 5 exit criterion met | Note the device/API level and UA outcome; release unblocked |
 
 ## What is deployed right now
 
-The preliminary gh-pages branch serves package `0.3.0` (versionCode 3,
-sha256 `67c94f6b…`, 23,024 bytes) built from commit `8ce3d39`. It is a
-**test publication**: Part 6 replaces it with the automated publish
-pipeline (`publish.yml`, force-orphan on every release) and final docs.
+The preliminary gh-pages branch serves package `0.4.0` (versionCode 4,
+sha256 `6ca801bf…`, 23,531 bytes): the 0.3.0 browser-header contingency
+for the reported Cloudflare 403 (RECON §8). It is a **test publication**:
+Part 6 replaces it with the automated publish pipeline (`publish.yml`,
+force-orphan on every release) and final docs.

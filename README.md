@@ -5,16 +5,16 @@ provider plugin for [wallpaperflare.com](https://www.wallpaperflare.com/) —
 popular feed, search, random picks and filters, delivered as a standalone
 extension repository the app can install by URL.
 
-> **Status: Part 5 of 7 — verification complete, device gate pending.** The
-> build, vendored provider API, packaging pipeline, frozen site contract,
-> parsing client and full `WallpaperProvider` wiring are done and verified
-> — 98 tests green, package reproducible, and every host-engine rule
-> (manifest, API gate, release-dex ABI) re-verified on each CI run by
-> `tools/verify_package.py`. A preliminary repository is LIVE at
-> **https://alamsamir7666-ux.github.io/WallpaperExtension** — installable
-> in the app right now (see `recon/EMULATOR_CHECK.md` for the release-gate
-> checklist). Part 6 automates publishing; Part 7 adds the drift watchdog.
-> See [PLAN.md](PLAN.md) for the delivery plan and
+> **Status: Part 5 of 7 — device gate iteration 2.** The first on-device
+> run reported the source failing; root-caused to the Cloudflare bot gate
+> challenging the host app's fixed User-Agent and fixed in **0.4.0** —
+> every request now carries a browser identity through the host client's
+> extra-header override (RECON §8). 101 tests green, package reproducible,
+> every host-engine rule re-verified on each CI run. The repository at
+> **https://alamsamir7666-ux.github.io/WallpaperExtension** serves 0.4.0 —
+> reinstall the package in the app and re-run the gate per
+> `recon/EMULATOR_CHECK.md`. Part 6 automates publishing; Part 7 adds the
+> drift watchdog. See [PLAN.md](PLAN.md) for the delivery plan and
 > [recon/RECON.md](recon/RECON.md) for the frozen site contract.
 
 ## Repository layout
@@ -23,8 +23,8 @@ extension repository the app can install by URL.
 |---|---|
 | `provider-api/` | Vendored, unmodified copy of the host app's MIT-licensed `:provider:api` extension contract (pinned to host v1.0.5) |
 | `plugin/` | The `cloudimage.wallpaperflare` provider: sources, `extension.json` manifest, tests, and the d8 → zip packaging pipeline |
-| `tools/` | Build & verification helpers: `fetch_android_jar.sh` (local android.jar for d8), `verify_package.py` (host-engine rules + release-dex ABI audit), `build_repo_index.py` (repository index generator) |
-| `.github/workflows/` | CI: ktlint, tests, package build & verification, host-rule + ABI verification, index generation |
+| `tools/` | Build & verification helpers: `fetch_android_jar.sh` (local android.jar for d8), `verify_package.py` (host-engine rules + release-dex ABI audit), `build_repo_index.py` (repository index generator), `probe_site.sh` (live Cloudflare/CDN probe) |
+| `.github/workflows/` | CI: ktlint, tests, package build & verification, host-rule + ABI verification, index generation; `site-probe.yml` (manual live-site diagnostic) |
 | `recon/RECON.md` | Wallpaperflare site contract (evidence-based, cross-confirmed) |
 | `recon/EMULATOR_CHECK.md` | The Part 5 release-gate checklist for the on-device verification |
 

@@ -47,9 +47,11 @@ internal sealed interface WallpaperflareFetch<out T> {
  *
  * All traffic goes through the [ProviderHttpClient] handed over by the host
  * (never a client of its own — locked decision, PLAN.md), one page at a
- * time, sequential by construction. Pagination ends when a page yields zero
- * cards — the stop condition Memorem's scraper proved in production; page
- * numbers are never guessed beyond +1.
+ * time, sequential by construction, every request carrying the browser
+ * header set of [WallpaperflareHttp] — the site's Cloudflare zone
+ * challenges the host's app User-Agent (RECON §8). Pagination ends when a
+ * page yields zero cards — the stop condition Memorem's scraper proved in
+ * production; page numbers are never guessed beyond +1.
  *
  * Grid wallpapers carry the CDN-derived original as `fullUrl`
  * (WallpaperflareCdn). The host's detail screen consumes a grid item's
@@ -177,13 +179,13 @@ internal class WallpaperflareClient(
     private suspend fun fetchCards(url: String): WallpaperflareFetch<List<WallpaperflareCard>> =
         fetch(url) { WallpaperflareParser.parseCards(it) }
 
-    /** GETs [url], parses on success, and wraps every failure mode. */
+    /** GETs [url] with the browser header set, parses on success, wraps failures. */
     private suspend fun <T> fetch(
         url: String,
         parse: (String) -> T,
     ): WallpaperflareFetch<T> =
         try {
-            val response = http.get(url)
+            val response = http.get(url, WallpaperflareHttp.browserHeaders)
             if (response.isSuccessful) {
                 WallpaperflareFetch.Ok(parse(response.bodyText))
             } else {

@@ -70,6 +70,7 @@ internal object TestFixtures {
  */
 internal class FakeHttpClient : ProviderHttpClient {
     val requestedUrls = mutableListOf<String>()
+    val requestedHeaders = mutableListOf<Map<String, String>>()
     private val routes = mutableListOf<Route>()
 
     private sealed interface Route {
@@ -107,10 +108,20 @@ internal class FakeHttpClient : ProviderHttpClient {
         headers: Map<String, String>,
     ): ProviderHttpResponse {
         requestedUrls += url
+        requestedHeaders += headers
         val route = routes.firstOrNull { url.contains(it.match) } ?: error("no route for $url")
         return when (route) {
             is Route.Respond -> ProviderHttpResponse(route.status, emptyMap(), route.body.toByteArray(Charsets.UTF_8))
             is Route.Fail -> throw route.error
         }
+    }
+
+    /** The header map every recorded request carried, for header-pinning tests. */
+    fun singleHeaderSet(): Map<String, String> {
+        check(requestedHeaders.isNotEmpty()) { "no requests were made" }
+        check(requestedHeaders.distinct().size == 1) {
+            "requests carried different header sets: $requestedHeaders"
+        }
+        return requestedHeaders.first()
     }
 }
