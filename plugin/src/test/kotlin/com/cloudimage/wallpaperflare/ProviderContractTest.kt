@@ -50,7 +50,7 @@ class ProviderContractTest {
     @Test
     fun declaresOnlyConfirmedCapabilities() {
         assertEquals(
-            setOf(Capability.POPULAR, Capability.SEARCH, Capability.FILTERS),
+            setOf(Capability.POPULAR, Capability.SEARCH, Capability.RANDOM, Capability.FILTERS),
             provider.capabilities,
         )
     }

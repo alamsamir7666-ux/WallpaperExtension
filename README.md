@@ -2,12 +2,14 @@
 
 A [Cloudimage](https://github.com/alamsamir7666-ux/Cloud-Wallpaper) wallpaper
 provider plugin for [wallpaperflare.com](https://www.wallpaperflare.com/) —
-popular feed, search and filters, delivered as a standalone extension
-repository the app can install by URL.
+popular feed, search, random picks and filters, delivered as a standalone
+extension repository the app can install by URL.
 
-> **Status: Part 1 of 7 — foundation.** The build, vendored provider API and
-> packaging pipeline are done and verified; the Wallpaperflare client and
-> provider wiring arrive in Parts 3–4, publishing in Part 6. See
+> **Status: Part 4 of 7 — provider complete.** The build, vendored provider
+> API, packaging pipeline, the frozen site contract (real HTML fixtures),
+> the parsing client and the full `WallpaperProvider` wiring are done and
+> verified — 98 tests green, package reproducible. Part 5 gates release on
+> an on-device emulator check; publishing arrives in Part 6. See
 > [PLAN.md](PLAN.md) for the delivery plan and
 > [recon/RECON.md](recon/RECON.md) for the frozen site contract.
 > **Not published yet — nothing to install until Part 6.**

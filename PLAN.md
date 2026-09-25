@@ -94,13 +94,24 @@ tests pass, CI clean.
       only `com/cloudimage/wallpaperflare/*` with the contract on
       `--classpath`.
       *Exit: client suite green over fixtures — done.*
-- [ ] **Part 4 — WallpaperProvider wiring** · meta (SFW, capabilities),
-      `configure()` stores the client, popular/search/details/random mapped
-      onto the client, host filter vocabulary → Wallpaperflare params
-      (sorting/order mapping per Part 2), `Result`-wrapped honest errors,
-      details payload (resolution, source URL, filesize when present).
-      Fake-client tests: happy path, empty, HTTP error, malformed body,
-      pagination. *Exit: provider complete and tested.*
+- [x] **Part 4 — WallpaperProvider wiring** · `configure()` wraps the host
+      client once (settings unused — keyless site), popular/search/details/
+      random mapped onto the client, the frozen filter vocabulary applied
+      (only `sorting=relevance` → `&sort=relevance`; toplist/date/random,
+      order, seed, category, purity honestly ignored; the popular feed
+      never takes a sort), `Result`-wrapped honest errors — HTTP → readable
+      source failure, parse → named contract drift, transport → the
+      ORIGINAL `ProviderHttpException` rethrown so the host's typed
+      transport errors survive the plugin boundary (offline stays offline);
+      RANDOM declared and served (loadmore draw + page-1 fallback);
+      `details` carries resolution, file size and the source URL. 21 wiring
+      tests over the shared fake seam — configure-gating, statelessness,
+      happy paths on real fixtures, empty/garbage-as-end-of-feed, HTTP 403/
+      503, transport preservation, full filter matrix, random draw/empty/
+      transport — plus the deleted stub suite (98 tests total), ktlint
+      clean, package 23,024 bytes reproducible (sha256 67c94f6b…), dex
+      payload audit: defines only `com/cloudimage/wallpaperflare/*`.
+      *Exit: provider complete and tested — done.*
 - [ ] **Part 5 — Packaging verification & engine integration** · validate the
       built zip end-to-end: manifest parses under the host's
       `ExtensionManifest` rules, layout matches `extension.json` +
@@ -196,3 +207,22 @@ tests pass, CI clean.
   reproducible at 19,978 bytes (sha256 01e8ce14…), dex payload audit:
   defines only `com/cloudimage/wallpaperflare/*`, references only the
   contract + platform/kotlin-stdlib.
+- **2026-09-25 — Part 4 done: the provider is wired.** The host contract's
+  four methods now delegate to the Part 3 client through one `runFetch`
+  seam that preserves each failure's meaning: HTTP errors surface as
+  readable source failures, parse errors name the frozen-contract drift,
+  and transport failures rethrow the ORIGINAL `ProviderHttpException` —
+  the host's `ExtensionWallpaperSources.toNetworkError` recovers its typed
+  transport errors from that subclass (offline stays offline), so the
+  plugin boundary stays honest end to end. The frozen filter vocabulary
+  (RECON §5) is applied exactly: `sorting=relevance` → `&sort=relevance`,
+  everything else the host can send is ignored without pretending, and the
+  popular feed never takes a sort parameter. RANDOM is now declared and
+  served (loadmore draw + page-1 fallback, Anning01's mechanism).
+  `StubBehaviorTest` retired with the stub; 21 wiring tests took its place
+  over a shared fake seam extracted into `TestFixtures` (98/98 green).
+  `extension.json` → 0.3.0/versionCode 3. Package reproducible at 23,024
+  bytes (sha256 67c94f6b…); dex audit (scripts/audit_extension_dex.py)
+  confirms the payload still defines only plugin classes. One workspace
+  note: the environment restored files with mode 755 — `core.fileMode` is
+  now off locally so phantom diffs stay out of commits.
