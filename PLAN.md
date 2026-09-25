@@ -76,13 +76,24 @@ tests pass, CI clean.
       edge-case mutations), pinned by `FixtureContractTest` (17 tests).
       `CAPTURE.md` = residential cookbook for live upgrades.
       *Exit: contract frozen, fixtures committed — done.*
-- [ ] **Part 3 — Wallpaperflare client (parsing layer)** · URL builder
-      (search `?wallpaper=&page=&sort=`, popular via loadmore, detail pages),
-      the lightweight HTML parser over the frozen card structure
-      (`a[itemprop='url']` + `img[data-src]`), pagination end-detection,
-      typed failures. Fixture-driven tests: URL building, card parsing,
-      malformed-HTML resilience, empty/end-of-feed pages.
-      *Exit: client suite green over fixtures.*
+- [x] **Part 3 — Wallpaperflare client (parsing layer)** · shipped as four
+      small classes: `WallpaperflareUrls` (the §2 URL grammar: search with
+      `+`-encoded queries and the single `sort=relevance`, loadmore,
+      detail/download paths), `WallpaperflareCdn` (the §4 full-resolution
+      derivation, two production grammars, null on unknown shapes),
+      `WallpaperflareParser` (cards anchored on `li[itemprop=associatedMedia]`
+      — both `.res` shapes, entity decoding, malformed-card skips — plus
+      detail/download page parsing) and `WallpaperflareClient`
+      (orchestration over `ProviderHttpClient`, typed failures
+      `Ok/HttpError/TransportError/ParseError`, pagination end-detection =
+      zero cards, `details()` two-GET flow, random via loadmore draw with
+      page-1 fallback). Grid wallpapers carry the CDN-derived original as
+      `fullUrl` (host-flow discovery: v1.0.5 never calls `details()` —
+      RECON §4a). 51 new fixture-driven tests (81 total), ktlint clean,
+      package 19,978 bytes reproducible (sha256 01e8ce14…), dex defines
+      only `com/cloudimage/wallpaperflare/*` with the contract on
+      `--classpath`.
+      *Exit: client suite green over fixtures — done.*
 - [ ] **Part 4 — WallpaperProvider wiring** · meta (SFW, capabilities),
       `configure()` stores the client, popular/search/details/random mapped
       onto the client, host filter vocabulary → Wallpaperflare params
@@ -166,3 +177,22 @@ tests pass, CI clean.
   snapshot (Part 1 re-cloned from GitHub, commit intact); the extra real
   detail pages live outside the repo and are re-fetchable via the pinned-SHA
   script recorded in RECON.md §7.
+- **2026-09-25 — Part 3 done: the Wallpaperflare client is real.** Before
+  writing code, re-read the host app's detail flow and found the decisive
+  fact: **v1.0.5 never calls `details()`** — `DetailViewModel`/
+  `WallpaperPreview` apply/save/share the GRID item's `fullUrl` directly,
+  so grid items must carry the derived original, not the small preview
+  (documented as RECON §4a). Also extracted AyGemuy's exact two-grammar
+  derivation from the pinned evidence (`-preview`/`-thumb` drop + c→r;
+  `/preview/`→`/path/` + c→r) and PeskyPotato's page-1 loadmore
+  pagination. Implemented `WallpaperflareUrls`/`WallpaperflareCdn`/
+  `WallpaperflareParser`/`WallpaperflareClient` with the typed
+  `WallpaperflareFetch` failure taxonomy; provider stub id unified onto the
+  client's `PROVIDER_ID`; `extension.json` bumped to 0.2.0/versionCode 2.
+  51 new tests over the unchanged Part-2 fixtures (URL grammar, both `.res`
+  shapes, all 8 edge-case mutations, download-page caveat, c→r derivation,
+  two-GET details with degradation, random draw + fallback, Http/
+  Transport/Parse failures) — 81/81 green, ktlint clean, package
+  reproducible at 19,978 bytes (sha256 01e8ce14…), dex payload audit:
+  defines only `com/cloudimage/wallpaperflare/*`, references only the
+  contract + platform/kotlin-stdlib.

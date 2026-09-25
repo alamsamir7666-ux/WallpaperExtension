@@ -10,21 +10,21 @@ import com.cloudimage.provider.api.WallpaperDetails
 import com.cloudimage.provider.api.WallpaperProvider
 
 /**
- * Wallpaperflare provider — Part 1 stub.
+ * Wallpaperflare provider — Part 3 state.
  *
- * The identity, policy and packaging contract is final from this part on;
- * only the data plumbing arrives later (client in Part 3, wiring in Part 4):
+ * The identity, policy and packaging contract is final from Part 1 on; the
+ * parsing client now exists (`WallpaperflareClient` + parser + URL/CDN
+ * grammar, fixture-tested), and Part 4 wires it in here:
  * - [meta] must stay in sync with `extension.json` (tests enforce it),
- * - [capabilities] declares only what is confirmed against the site:
- *   RANDOM stays out until a workable mechanism is verified (see
- *   recon/RECON.md), because a declared capability the host cannot use
- *   is a broken UI promise,
+ * - [capabilities] declares only what is confirmed against the site
+ *   (see recon/RECON.md); Part 4 adds RANDOM — its mechanism is confirmed,
+ *   the declaration lands with the wiring that actually serves it,
  * - the provider is rated SFW and hard-clamps itself to safe requests —
  *   no sketchy/NSFW category path is ever requested and every item is
  *   reported as SFW (the host re-enforces this per item anyway).
  *
- * The stub returns empty successful pages so the package installs, loads
- * and degrades gracefully before the client exists; [details] and [random]
+ * The stub still returns empty successful pages so the package installs,
+ * loads and degrades gracefully until Part 4; [details] and [random]
  * fail honestly instead of pretending.
  */
 class WallpaperflareWallpaperProvider : WallpaperProvider {
@@ -32,7 +32,7 @@ class WallpaperflareWallpaperProvider : WallpaperProvider {
         ProviderMeta(
             id = PLUGIN_ID,
             name = "Wallpaperflare",
-            versionName = "0.1.0",
+            versionName = "0.2.0",
             author = "alamsamir7666-ux",
             contentRating = ContentRating.SFW,
             language = "en",
@@ -65,7 +65,7 @@ class WallpaperflareWallpaperProvider : WallpaperProvider {
     private fun emptyPage(): Result<Page> = Result.success(Page(wallpapers = emptyList(), nextPage = null))
 
     companion object {
-        const val PLUGIN_ID = "cloudimage.wallpaperflare"
+        const val PLUGIN_ID = PROVIDER_ID
         const val ENTRY_CLASS = "com.cloudimage.wallpaperflare.WallpaperflareWallpaperProvider"
     }
 }

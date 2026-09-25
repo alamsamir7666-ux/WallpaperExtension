@@ -114,6 +114,38 @@ meta (comma-split), `fileSize` from contentSize meta.
 Both paths are exercised by fixtures; the live tie-break is CAPTURE.md's
 `r4` HEAD check / Part 5.
 
+## 4a. Part 3 refinements (post-freeze, new evidence)
+
+Part 3 re-read the host app and the pinned scraper evidence before
+implementing; three refinements extend — never contradict — the frozen
+contract above:
+
+1. **The host app never calls `details()` (v1.0.5).** The detail screen
+   (`DetailViewModel` + `WallpaperPreview`) consumes the GRID item's
+   `fullUrl` directly for preview, apply, save and share; grep across the
+   host repo finds `details(` only in provider implementations and tests.
+   Consequence: a grid item pointing at a small preview would silently
+   apply/save low-resolution files. The Part 3 client therefore sets grid
+   `fullUrl` to the **CDN-derived original** (the AyGemuy production
+   grammar below) and keeps the preview as `thumbUrl` — the derivation is
+   the value that matters, and Part 5's on-device check gates it. The
+   `details()` upgrade path (§4 order) still exists for host versions that
+   call it.
+2. **The AyGemuy derivation is exact and two-shaped** (read from its
+   pinned source, `wf-captures/` evidence): `…/wallpaper/{a}/{b}/{c}/{base}-preview.jpg`
+   (or `-thumb.jpg`) → `https://r{N}…/wallpaper/{a}/{b}/{c}/{base}.jpg`
+   (drop the size suffix, `c{N}`→`r{N}`); and search thumbs
+   `…/preview/{a}/{b}/{c}/{base}.jpg` → `https://r{N}…/path/{a}/{b}/{c}/{base}.jpg`
+   (`/preview/`→`/path/`, `c`→`r`). Unknown shapes must NOT be guessed —
+   keep the preview URL itself (`WallpaperflareCdn.deriveOriginal`
+   returns null; callers fall back).
+3. **PeskyPotato (production) paginates the popular feed through
+   `portal_loadmore&page=N` starting at page 1** — no homepage fetch. The
+   Part 3 client follows this: `popular(page)` hits the loadmore endpoint
+   for every page, including page 1. (PeskyPotato also reads `show_img`
+   `src` after a plain fetch — the dual-path fullUrl design is confirmed,
+   not just defensive.)
+
 ## 5. Host vocabulary mapping (frozen)
 
 | Host filter | Wallpaperflare expression |
