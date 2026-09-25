@@ -4,13 +4,13 @@
     {
       "id": "cloudimage.wallpaperflare",
       "fileName": "cloudimage.wallpaperflare.zip",
-      "sha256": "67c94f6bcd507909d967c88edfbe9611a1f900bd1f41e268aa39e1e28894cb7a",
-      "sizeBytes": 23024,
-      "versionName": "0.3.0",
-      "versionCode": 3,
+      "sha256": "6ca801bf1986eecd9f315d4aa2799dcd28bd1a220c1b6b97d1c43c5b11be2498",
+      "sizeBytes": 23531,
+      "versionName": "0.4.0",
+      "versionCode": 4,
       "apiVersion": 1,
       "author": "alamsamir7666-ux",
-      "description": "Wallpapers from wallpaperflare.com - popular feed, search, random picks and filters."
+      "description": "Wallpapers from wallpaperflare.com - popular feed, search, random picks and filters. Browser-identified requests pass the site's Cloudflare zone."
     }
   ]
 }
