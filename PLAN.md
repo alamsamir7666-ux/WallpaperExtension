@@ -60,14 +60,22 @@ tests pass, CI clean.
       artifact upload). A stub provider (empty `popular`) builds into a valid
       package that passes manifest/index/sha256 validation tests.
       *Exit: green CI over a stub package.*
-- [ ] **Part 2 — Live-site contract & fixtures** · capture real HTML from a
-      residential connection (curl cookbook provided — user runs 5 commands
-      and drops outputs in `recon/fixtures/`; OR proceed on scraper-derived
-      synthetic fixtures with live confirmation deferred to Part 5). Freeze
-      the parse contract in `recon/RECON.md`: items per page, sort values,
-      category/tag browse URLs, detail-page download grammar (`link_btn` →
-      `show_img`), dimension/filesize metadata availability, RANDOM
-      feasibility. *Exit: contract frozen, fixtures committed.*
+- [x] **Part 2 — Live-site contract & fixtures** · real HTML recovered
+      without residential access: the sandbox is Cloudflare-blocked for the
+      whole zone, but GitHub code search exposed genuine saved pages (a real
+      search page, a real detail page, a real `/download` page — committed
+      byte-identical) plus 10 cross-confirming scrapers incl. maintained
+      RSS-Bridge. Contract FROZEN in `recon/RECON.md` (URL grammar incl.
+      `sort=relevance` + `mobile`/`width`/`height` form params; card =
+      `li[itemprop=associatedMedia]` → `a[itemprop=url]` + `img[data-src]` +
+      `.res` + metas, independent of container; detail `link_btn`/`vimg`/
+      `o_tips`/`tagul`; download `show_img` (**src is JS-set — real capture
+      proves it**) + static `dld_thumb` fallback; c→r CDN derivation).
+      RANDOM = GO (loadmore random page, Anning01's production mechanism).
+      Fixtures: 3 real + 4 synthetic (loadmore fragment, empty pages, 8
+      edge-case mutations), pinned by `FixtureContractTest` (17 tests).
+      `CAPTURE.md` = residential cookbook for live upgrades.
+      *Exit: contract frozen, fixtures committed — done.*
 - [ ] **Part 3 — Wallpaperflare client (parsing layer)** · URL builder
       (search `?wallpaper=&page=&sort=`, popular via loadmore, detail pages),
       the lightweight HTML parser over the frozen card structure
@@ -137,3 +145,24 @@ tests pass, CI clean.
   via the foojay resolver (build machines with only a JRE still work; CI
   resolves to its Temurin 17). Not yet on GitHub — first push happens after
   the user reviews Part 1, so CI itself is unexercised until then.
+- **2026-09-25 — Part 1 pushed, CI green on first run.** Repo live at
+  `alamsamir7666-ux/WallpaperExtension` (commit `f0eb81b`): the user's
+  `main` received the 31-file tree; Actions run #1 passed end-to-end
+  (ktlint, 13 tests, package+verify, artifact upload) in ~90 s — the
+  environment strategy (foojay JDK 17, android.jar guard) works on GitHub
+  runners as designed.
+- **2026-09-25 — Part 2 done: contract frozen on REAL evidence.** Whole-zone
+  Cloudflare block (site + all CDN subdomains) forced a different recovery
+  route: GitHub code search found pages users had saved into public repos —
+  a real search page (`puerta vieja`, 2 cards, form + sort link), a real
+  detail page (nature/tropical, 50 related cards, full download chain), and
+  a real `/download` page (bikes 4096x2304, `dld_thumb`, `dld_info`, and the
+  key caveat: `show_img` has NO static src). Cross-confirmed against 10
+  scrapers (RSS-Bridge maintained; AyGemuy's c→r full-res derivation;
+  Anning01's random-page mechanism → RANDOM = GO). Committed: 3 real + 4
+  synthetic fixtures with provenance README + CAPTURE.md cookbook, RECON.md
+  rewritten as the frozen contract, `FixtureContractTest` (17 tests) pinning
+  it. Workspace note: the build sandbox was restored from a pre-Part-1
+  snapshot (Part 1 re-cloned from GitHub, commit intact); the extra real
+  detail pages live outside the repo and are re-fetchable via the pinned-SHA
+  script recorded in RECON.md §7.

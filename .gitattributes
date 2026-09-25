@@ -5,3 +5,7 @@
 *.png binary
 gradlew text eol=lf
 gradlew.bat text eol=crlf
+
+# Real page captures stay byte-identical: no line-ending normalization,
+# no diff mangling — the raw bytes are part of the parse contract
+recon/fixtures/*.html -text diff
