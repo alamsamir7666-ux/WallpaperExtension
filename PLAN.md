@@ -297,3 +297,33 @@ tests pass, CI clean.
   if thumbnails fail on device, that escalation is documented in
   EMULATOR_CHECK.md's triage table. Awaiting the user's 0.4.0 retest to
   close Part 5.
+
+- **2026-09-26 — 0.5.0 SHIPPED (sectioned home + the host-side Cloudflare
+  endgame).** Two coordinated releases, one per side of the plugin
+  boundary. Host side: Cloudimage v1.0.15 (commit 662d828) adds the
+  app-side Cloudflare bypass this plugin was always missing —
+  `CloudimageHttpClient.getRaw` detects challenge responses and replays
+  once under a WebView-earned clearance (`CloudflareBypasser`: per-host
+  serialization, warm starts from the WebView cookie jar across launches,
+  stale-state replacement, 60 s failure cooldown; `WebViewCloudflareSolver`
+  runs the challenge for real with JS + DOM storage on and network images
+  off). Plugin side (this release): the vendored contract moves from host
+  v1.0.5 to v1.0.15 sources — still `ProviderApi.VERSION` 1, because
+  `sections()`/`suggestTags()` shipped as additive interface defaults in
+  the host's v1.0.9, exactly the compatibility mechanism their KDoc
+  documents — and the provider now overrides `sections()` with the
+  12-row home: Popular (the loadmore feed, the primary row every host
+  shows in the merged view) plus 11 tag rows, each a `"query"` preset in
+  the host vocabulary, which host v1.0.15+ routes through this
+  provider's own search (`/search?wallpaper=nature` — the site's native
+  tag browse). Degrade is honest and documented: hosts older than
+  v1.0.15 drop the unknown `query` key per the Filters contract, rows
+  render, each loads the popular feed. Tag set frozen from the site's
+  own high-yield vocabulary (one deliberate title/term split: Minimalist
+  searches "minimal"). 103/103 tests green (+2: the 12-row layout with
+  query presets, and the term-walks-the-search-grammar pin), ktlint
+  clean, package 24,267 bytes, sha256 d7d4407d…, dex ABI audited against
+  the host v1.0.15 APK — 0 unresolved external refs (the new
+  `HomeSection` references resolve). gh-pages updated to 0.5.0; the
+  in-app update affordance (host ≥ v1.0.9) carries installed 0.4.0
+  devices forward.

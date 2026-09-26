@@ -1,6 +1,7 @@
 package com.cloudimage.wallpaperflare
 
 import com.cloudimage.provider.api.Filters
+import com.cloudimage.provider.api.HomeSection
 import com.cloudimage.provider.api.ProviderHttpException
 import com.cloudimage.provider.api.ProviderSettings
 import kotlinx.coroutines.test.runTest
@@ -374,5 +375,61 @@ class WallpaperflareWallpaperProviderTest {
             val result = provider.random()
 
             assertSame(timeout, result.exceptionOrNull())
+        }
+
+    // ------------------------------------------------------------------
+    // Home sections (0.5.0)
+    // ------------------------------------------------------------------
+
+    @Test
+    fun sectionsLayOutTheTwelveRowHomeWithQueryPresets() =
+        runTest {
+            val provider = WallpaperflareWallpaperProvider()
+
+            val sections = provider.sections()
+
+            // The default row leads — the merged home shows the primary row
+            // only, so Popular is the row every host sees.
+            assertEquals(HomeSection.DEFAULT_ID, sections.first().id)
+            assertEquals(12, sections.size)
+            // Stable, unique ids; readable titles.
+            assertEquals(sections.size, sections.map { it.id }.distinct().size)
+            assertTrue(sections.all { it.title.isNotBlank() })
+            // Every tag row is a single-term query preset — the host-vocabulary
+            // key sections ride since host v1.0.15. The one deliberate
+            // title/term mismatch: Minimalist searches "minimal".
+            val tagRows = sections.drop(1)
+            assertEquals(
+                listOf(
+                    "nature" to "nature",
+                    "animals" to "animals",
+                    "anime" to "anime",
+                    "fantasy" to "fantasy",
+                    "space" to "space",
+                    "cars" to "cars",
+                    "gaming" to "gaming",
+                    "abstract" to "abstract",
+                    "minimalist" to "minimal",
+                    "architecture" to "architecture",
+                    "people" to "people",
+                ),
+                tagRows.map { it.id to it.filters.valuesFor("query").single() },
+            )
+        }
+
+    @Test
+    fun sectionTermsWalkTheSameSearchGrammarAsUserText() =
+        runTest {
+            val http = FakeHttpClient().apply { respond("search?wallpaper=", searchPage) }
+            val provider = WallpaperflareWallpaperProvider().apply { configure(http, noSettings) }
+
+            // A tag row's term is indistinguishable from typed text by the
+            // time it reaches the site — that is the whole routing story.
+            provider.search("nature", page = 1).getOrThrow()
+
+            assertEquals(
+                listOf("https://www.wallpaperflare.com/search?wallpaper=nature&page=1"),
+                http.requestedUrls,
+            )
         }
 }

@@ -1,11 +1,10 @@
 /*
  * Vendored from the Cloudimage host app's `:provider:api` module
- * (https://github.com/alamsamir7666-ux/Cloud-Wallpaper, tag v1.0.5,
- * commit 59d06d8a8cb31103d85f3fe852bf8f740c71c58f), MIT licensed — see the
- * LICENSE file next to this source tree. Unmodified apart from this header;
- * the runtime authority is the copy inside the installed host app.
+ * (https://github.com/alamsamir7666-ux/Cloud-Wallpaper, tag v1.0.15,
+ * commit 662d8281a5342045e5808995be73a829cb4ec985), MIT licensed — see the LICENSE file next to this source
+ * tree. Unmodified apart from this header; the runtime authority is the
+ * copy inside the installed host app.
  */
-
 package com.cloudimage.provider.api
 
 /**
@@ -152,6 +151,43 @@ interface WallpaperProvider {
         page: Int = 1,
         filters: Filters = Filters.None,
     ): Result<Page>
+
+    /**
+     * Tag suggestions for the search bar while the user types (v1.0.9).
+     *
+     * Additive default, exactly like [sections]: providers compiled against
+     * the V1 contract do not implement this method and answer nothing, so
+     * [ProviderApi.VERSION] stays 1 and old packages keep loading — the
+     * host simply gets no suggestions from them. A provider that CAN
+     * suggest real tags from its own first-party API overrides this; the
+     * host gates the affordance on [Capability.TAGS] and never calls a
+     * third-party suggest service — suggestions come from the source the
+     * user is already searching, or not at all.
+     *
+     * [query] is the raw field text, typically a word prefix. Return a
+     * short list of tag names — the host merges, dedupes and caps across
+     * sources. Providers without the data to answer (e.g. keyless when the
+     * tag API needs a key) should return an empty list rather than fire
+     * requests destined to fail.
+     */
+    suspend fun suggestTags(query: String): Result<List<String>> = Result.success(emptyList())
+
+    /**
+     * The named feeds the home screen shows as section rows (v1.0.9).
+     *
+     * Additive default: providers compiled against the V1 contract do not
+     * implement this method, and the default below runs through the
+     * interface — [ProviderApi.VERSION] stays 1, old packages keep loading,
+     * and their home degrades to a single "Popular" row over [popular].
+     * Providers that want the CloudStream-style home override it with
+     * their own [HomeSection]s, each a titled query preset.
+     *
+     * Keep it cheap and offline: the host calls this on every feed start.
+     */
+    suspend fun sections(): List<HomeSection> =
+        listOf(
+            HomeSection(id = HomeSection.DEFAULT_ID, title = "Popular"),
+        )
 
     suspend fun details(id: String): Result<WallpaperDetails>
 

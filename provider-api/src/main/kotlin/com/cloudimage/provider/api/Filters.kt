@@ -1,11 +1,10 @@
 /*
  * Vendored from the Cloudimage host app's `:provider:api` module
- * (https://github.com/alamsamir7666-ux/Cloud-Wallpaper, tag v1.0.5,
- * commit 59d06d8a8cb31103d85f3fe852bf8f740c71c58f), MIT licensed — see the
- * LICENSE file next to this source tree. Unmodified apart from this header;
- * the runtime authority is the copy inside the installed host app.
+ * (https://github.com/alamsamir7666-ux/Cloud-Wallpaper, tag v1.0.15,
+ * commit 662d8281a5342045e5808995be73a829cb4ec985), MIT licensed — see the LICENSE file next to this source
+ * tree. Unmodified apart from this header; the runtime authority is the
+ * copy inside the installed host app.
  */
-
 package com.cloudimage.provider.api
 
 /**
@@ -26,7 +25,10 @@ package com.cloudimage.provider.api
  * rendering (V2 territory):
  *
  * - `"query"` — free text; also mirrored into the [WallpaperProvider.search]
- *   `query` parameter, so this key is rarely needed inside filters,
+ *   `query` parameter, so this key is rarely needed inside filters — except
+ *   by [HomeSection]s (v1.0.15): a section declaring `"query"` under its
+ *   filters declares a tag-style feed, and the host routes its row through
+ *   the provider's own search with that term,
  * - `"category"` — `"general"` / `"anime"` / `"people"` (multi-select),
  * - `"purity"` — `"sfw"` / `"sketchy"` (multi-select; the host never
  *   requests `"nsfw"` in V1 — it drops that value before calling),
