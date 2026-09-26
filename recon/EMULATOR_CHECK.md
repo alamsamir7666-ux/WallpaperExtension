@@ -58,10 +58,22 @@ Extensions tab — the index is fetched on demand, not cached in V1.
 move to `READY` within a second or two — the download is ~23 KB, the sha256
 is verified on arrival, and a failure here names its reason precisely
 (checksum mismatch / invalid manifest / unsupported API are the host's
-messages, none of which should appear). **If 0.3.0 is already installed**,
-installing 0.4.0 from the refreshed repo replaces it in one step — the
-installer treats a re-install of the same id as a replace (host
-`ExtensionInstaller` contract).
+messages, none of which should appear).
+
+**⚠️ If 0.3.0 is already installed, there is NO update button.** The host
+v1.0.5 catalog row only checks `entry.id in installedIds` — an installed id
+shows an **"Installed" chip**, never an install/update action, regardless of
+versionCode. The installer *would* replace on re-install (same-id install is
+a one-step replace), but the catalog UI never offers the action. **The
+device-gate path is therefore: uninstall first, then install:**
+
+1. Installed section → *Wallpaperflare* row → red **trash icon** → confirm
+   uninstall;
+2. Repository section → *Wallpaperflare* catalog row → **download icon** →
+   installs 0.4.0 fresh.
+
+This UI gap is a host-side limitation (worth an "Update" button when
+`versionCode` is newer) — not fixable from the extension.
 
 **Step 3 — browse (the Cloudflare gate).** Back on the browse tab, select
 the Wallpaperflare source. The popular feed should render thumbnails within
@@ -80,8 +92,10 @@ originals), and **Set wallpaper** should succeed.
 
 | Symptom | Meaning | Action |
 |---|---|---|
+| Feed error banner persisting after the 0.4.0 push, extension still shows 0.3.0 in the installed list | **CONFIRMED iteration 3: the catalog UI has no update path — the device keeps running 0.3.0 (app UA, still 403)** | Uninstall the installed Wallpaperflare row (trash icon), then install from the repo catalog row (download icon) → re-run steps 3–5 |
+| Feed error banner on a **verified 0.4.0** install | Cloudflare is scoring beyond the UA (TLS/HTTP2 fingerprint) — note the probe is "both challenged" from datacenter IPs, so only a residential verdict counts | Report which network (Wi-Fi vs mobile data) + any visible detail; next escalation is host-level (WebView fetch or host client changes) |
+| The banner says "check the Extensions tab" but the tab shows nothing wrong | Expected host observability gap: the Extensions tab lists LOAD failures only; a FETCH failure (HTTP 403 etc.) is flattened into the generic browse banner and never displayed | Diagnose by elimination: reinstall current package, then probe (below) |
 | ~~Feed error banner, "source failed: wallpaperflare answered HTTP 403"~~ — **reported on the first device run; fixed in 0.4.0** | Cloudflare challenged the host's app User-Agent | Update/reinstall the package (0.4.0, browser-identified requests — RECON §8) and re-run steps 3–5 |
-| Feed error banner persists on 0.4.0 | Cloudflare is scoring beyond the UA (TLS/HTTP2 fingerprint) — datacenter-style bot scoring | Report with `site-probe` output; next escalation is host-level (WebView fetch or host client changes) |
 | Thumbnails render but previews/downloads fail | the c→r CDN derivation hit an unknown shape (PLAN.md risk, CAPTURE.md §r-grammar) — or the CDN challenges the host's Coil image loader | Report which wallpaper; run `tools/probe_site.sh` CDN rows |
 | Thumbnails themselves fail to render | the CDN zone challenges Coil's default OkHttp identity — host-side fix needed | Report; host-level Coil OkHttp config is the contingency |
 | Package installs but source fails to load, "source failed to bind its classes" | release-dex ABI regression on the host side | Report — this is exactly what `verify_package.py` audits against; would indicate the host's keep rules changed |
